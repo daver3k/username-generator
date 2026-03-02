@@ -1,0 +1,2564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Username Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0f0ee;
+    --surface: #ffffff;
+    --border: #c8c8c4;
+    --border-strong: #888884;
+    --text: #111110;
+    --muted: #666662;
+    --accent: #111110;
+    --btn-bg: #111110;
+    --btn-text: #f0f0ee;
+    --btn-hover: #333330;
+    --loaded: #1a6640;
+    --transition: background 0.25s, color 0.25s, border-color 0.25s;
+  }
+
+  html.dark {
+    --bg: #161614;
+    --surface: #1e1e1c;
+    --border: #333330;
+    --border-strong: #555550;
+    --text: #e8e8e4;
+    --muted: #888884;
+    --accent: #e8e8e4;
+    --btn-bg: #e8e8e4;
+    --btn-text: #161614;
+    --btn-hover: #ccccca;
+    --loaded: #4caf78;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    font-size: 0.875rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    transition: var(--transition);
+  }
+
+  /* Dark mode toggle */
+  .theme-toggle {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.05em;
+  }
+  .theme-toggle:hover { color: var(--text); border-color: var(--text); }
+
+  .container {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  header {
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text);
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+  }
+
+  /* Upload section */
+  .upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .upload-box {
+    border: 1px solid var(--border);
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    position: relative;
+    background: var(--surface);
+    transition: var(--transition);
+  }
+
+  .upload-box:hover { border-color: var(--border-strong); }
+  .upload-box.loaded { border-color: var(--loaded); }
+
+  .upload-box input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .upload-status {
+    font-size: 0.8rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .upload-box.loaded .upload-status { color: var(--loaded); }
+
+  .upload-count {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* Options */
+  .options-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    user-select: none;
+    flex: 1;
+  }
+
+  .checkbox-wrap input[type="checkbox"] {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border-strong);
+    background: var(--bg);
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: var(--transition);
+  }
+
+  .checkbox-wrap input[type="checkbox"]:checked {
+    background: var(--btn-bg);
+    border-color: var(--btn-bg);
+  }
+
+  .checkbox-wrap input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 3px; top: 0px;
+    width: 4px; height: 8px;
+    border: 1.5px solid var(--btn-text);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+  }
+
+  .checkbox-wrap span { color: var(--text); }
+
+  .num-range {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .num-range input[type="number"] {
+    width: 56px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.4rem;
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .num-range input[type="number"]:focus {
+    outline: none;
+    border-color: var(--border-strong);
+  }
+
+  /* Generate button */
+  .btn-generate {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-bg);
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-generate:hover { background: var(--btn-hover); border-color: var(--btn-hover); }
+  .btn-generate:active { opacity: 0.85; }
+  .btn-generate:disabled {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+
+  /* Result */
+  .result-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .result-box.has-result { border-color: var(--border-strong); }
+
+  .placeholder-text {
+    color: var(--muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .username-list {
+    width: 100%;
+    list-style: none;
+  }
+
+  .username-item {
+    display: flex;
+    align-items: center;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.18s, transform 0.18s, border-color 0.25s;
+  }
+
+  .username-item:last-child { border-bottom: none; }
+  .username-item.show { opacity: 1; transform: translateY(0); }
+
+  .num-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    width: 1.75rem;
+    flex-shrink: 0;
+  }
+
+  .username-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+    padding: 0 0.75rem;
+  }
+
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  .copy-btn:hover { border-color: var(--border-strong); color: var(--text); }
+
+  .error-msg {
+    color: #c0392b;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+</style>
+</head>
+<body>
+<!-- =====================================================
+     STOCK WORD LISTS
+     Paste your adjectives below (one per line).
+     Users can still override these by uploading a file.
+     ===================================================== -->
+<textarea id="stockAdjectives" style="display:none">
+  bright
+  cold
+  warm
+  fresh
+  green
+  bold
+  kind
+  shy
+  proud
+  smooth
+  sharp
+  dull
+  loud
+  soft
+  quick
+  slow
+  neat
+  plain
+  sweet
+  sour
+  salty
+  crisp
+  rough
+  flat
+  round
+  square
+  tall
+  short
+  wide
+  thin
+  small
+  big
+  huge
+  tiny
+  clean
+  dirty
+  wet
+  dry
+  light
+  dark
+  fair
+  brave
+  calm
+  fierce
+  cool
+  hot
+  strong
+  weak
+  new
+  old
+  young
+  rich
+  poor
+  funny
+  sad
+  glad
+  tired
+  busy
+  lazy
+  crazy
+  happy
+  moody
+  sleepy
+  tricky
+  silly
+  gruff
+  humble
+  gentle
+  harsh
+  noble
+  rude
+  polite
+  noisy
+  quiet
+  wise
+  meek
+  cute
+  witty
+  chunky
+  grassy
+  rocky
+  sandy
+  lucky
+  jolly
+  gloomy
+  hazy
+  fuzzy
+  steady
+  bumpy
+  stormy
+  frosty
+  sturdy
+  tidy
+  nutty
+  spicy
+  breezy
+  shiny
+  mellow
+  airy
+  rustic
+  sleek
+  zany
+  snug
+  bleak
+  blunt
+  bland
+  brisk
+  broad
+  chill
+  crude
+  dainty
+  deep
+  dense
+  hearty
+  hefty
+  icy
+  jagged
+  juicy
+  keen
+  lively
+  loose
+  lush
+  mild
+  milky
+  muddy
+  murky
+  narrow
+  nervous
+  nimble
+  odd
+  patchy
+  peachy
+  petty
+  plush
+  plucky
+  plump
+  prime
+  primo
+  puffy
+  quirky
+  rabid
+  ragged
+  rapid
+  rarer
+  ready
+  rugged
+  ruddy
+  runny
+  rusty
+  saucy
+  savage
+  scaly
+  scented
+  sensible
+  shabby
+  shadowed
+  shaky
+  sheer
+  shrill
+  shyish
+  silky
+  slim
+  slimy
+  sloppy
+  smug
+  snappy
+  soapy
+  softer
+  solemn
+  sparkly
+  speedy
+  spiky
+  spotty
+  spry
+  stale
+  stark
+  steep
+  sticky
+  stiff
+  stony
+  strange
+  strict
+  suave
+  sunny
+  tame
+  tasty
+  taut
+  tense
+  terse
+  thick
+  thorny
+  thrifty
+  toasty
+  tough
+  tourist
+  tranquil
+  trivial
+  true
+  tubby
+  twiggy
+  windy
+  wiry
+  woody
+  woolly
+  worthy
+  zesty
+  agile
+  basic
+  bitter
+  blurry
+  bogus
+  bony
+  bossy
+  brassy
+  brief
+  brittle
+  bubbly
+  bulky
+  bushy
+  bustling
+  candid
+  caring
+  charred
+  cheerful
+  chummy
+  classy
+  cloudy
+  clumsy
+  coarse
+  coastal
+  cosy
+  crispy
+  crowded
+  cruel
+  crusty
+  cuddly
+  curly
+  curvy
+  dapper
+  deaf
+  decent
+  dim
+  dingy
+  earthy
+  edgy
+  eerie
+  elder
+  even
+  feisty
+  flashy
+  fluffy
+  focal
+  foggy
+  formal
+  frail
+  frank
+  frisky
+  frugal
+  fussy
+  gifted
+  girlish
+  glazed
+  glossy
+  golden
+  gooey
+  greedy
+  grimy
+  grumpy
+  guileless
+  gummy
+  hairy
+  handy
+  hardy
+  honest
+  hopeful
+  hostile
+  humid
+  husky
+  idly
+  idol
+  itchy
+  jaunty
+  jazzy
+  jerky
+  knotty
+  kooky
+  kosher
+  leafy
+  legal
+  level
+  likely
+  lofty
+  lonely
+  lovely
+  lumpy
+  mealy
+  merry
+  minty
+  misty
+  mixed
+  mobile
+  modest
+  morbid
+  musty
+  naive
+  needy
+  nifty
+  oily
+  older
+  orderly
+  ornate
+  pale
+  perky
+  phony
+  pickup
+  piercing
+  poised
+  polished
+  portly
+  pretty
+  pricey
+  prickly
+  primal
+  proper
+  punchy
+  pure
+  pushy
+  quaint
+  rainy
+  rare
+  ratty
+  raw
+  reeky
+  regal
+  remote
+  ripe
+  rigid
+  robust
+  roomy
+  rosy
+  rowdy
+  savory
+  scarce
+  scary
+  sincere
+  sleepless
+  slight
+  sluggish
+  smoggy
+  snazzy
+  snide
+  snippy
+  sober
+  somber
+  sparse
+  sporty
+  spotless
+  squeaky
+  starry
+  stout
+  straw
+  superb
+  swampy
+  sweaty
+  tabby
+  tacky
+  torn
+  trendy
+  turbid
+  twisty
+  ugly
+  vague
+  vivid
+  wacky
+  wan
+  watery
+  weary
+  weekly
+  weighty
+  whiny
+  wicker
+  woeful
+  wry
+  bright
+  cold
+  warm
+  fresh
+  green
+  bold
+  kind
+  shy
+  proud
+  smooth
+  sharp
+  dull
+  loud
+  soft
+  quick
+  slow
+  neat
+  plain
+  sweet
+  sour
+  salty
+  crisp
+  rough
+  flat
+  round
+  square
+  tall
+  short
+  wide
+  thin
+  small
+  big
+  huge
+  tiny
+  clean
+  dirty
+  wet
+  dry
+  light
+  dark
+  fair
+  brave
+  calm
+  fierce
+  cool
+  hot
+  strong
+  weak
+  new
+  old
+  young
+  rich
+  poor
+  funny
+  sad
+  glad
+  tired
+  busy
+  lazy
+  crazy
+  happy
+  moody
+  sleepy
+  tricky
+  silly
+  gruff
+  humble
+  gentle
+  harsh
+  noble
+  rude
+  polite
+  noisy
+  quiet
+  wise
+  meek
+  cute
+  witty
+  chunky
+  grassy
+  rocky
+  sandy
+  lucky
+  jolly
+  gloomy
+  hazy
+  fuzzy
+  steady
+  bumpy
+  stormy
+  frosty
+  sturdy
+  tidy
+  nutty
+  spicy
+  breezy
+  shiny
+  mellow
+  airy
+  rustic
+  sleek
+  zany
+  snug
+  bleak
+  blunt
+  bland
+  brisk
+  broad
+  chill
+  crude
+  dainty
+  deep
+  dense
+  hearty
+  hefty
+  icy
+  jagged
+  juicy
+  keen
+  lively
+  loose
+  lush
+  mild
+  milky
+  muddy
+  murky
+  narrow
+  nervous
+  nimble
+  odd
+  patchy
+  peachy
+  petty
+  plush
+  plucky
+  plump
+  prime
+  primo
+  puffy
+  quirky
+  rabid
+  ragged
+  rapid
+  rarer
+  ready
+  rugged
+  ruddy
+  runny
+  rusty
+  saucy
+  savage
+  scaly
+  scented
+  sensible
+  shabby
+  shadowed
+  shaky
+  sheer
+  shrill
+  shyish
+  silky
+  slim
+  slimy
+  sloppy
+  smug
+  snappy
+  soapy
+  softer
+  solemn
+  sparkly
+  speedy
+  spiky
+  spotty
+  spry
+  stale
+  stark
+  steep
+  sticky
+  stiff
+  stony
+  strange
+  strict
+  suave
+  sunny
+  tame
+  tasty
+  taut
+  tense
+  terse
+  thick
+  thorny
+  thrifty
+  toasty
+  tough
+  tourist
+  tranquil
+  trivial
+  true
+  tubby
+  twiggy
+  windy
+  wiry
+  woody
+  woolly
+  worthy
+  zesty
+  agile
+  basic
+  bitter
+  blurry
+  bogus
+  bony
+  bossy
+  brassy
+  brief
+  brittle
+  bubbly
+  bulky
+  bushy
+  bustling
+  candid
+  caring
+  charred
+  cheerful
+  chummy
+  classy
+  cloudy
+  clumsy
+  coarse
+  coastal
+  cosy
+  crispy
+  crowded
+  cruel
+  crusty
+  cuddly
+  curly
+  curvy
+  dapper
+  deaf
+  decent
+  dim
+  dingy
+  earthy
+  edgy
+  eerie
+  elder
+  even
+  feisty
+  flashy
+  fluffy
+  focal
+  foggy
+  formal
+  frail
+  frank
+  frisky
+  frugal
+  fussy
+  gifted
+  girlish
+  glazed
+  glossy
+  golden
+  gooey
+  greedy
+  grimy
+  grumpy
+  guileless
+  gummy
+  hairy
+  handy
+  hardy
+  honest
+  hopeful
+  hostile
+  humid
+  husky
+  idly
+  idol
+  itchy
+  jaunty
+  jazzy
+  jerky
+  knotty
+  kooky
+  kosher
+  leafy
+  legal
+  level
+  likely
+  lofty
+  lonely
+  lovely
+  lumpy
+  mealy
+  merry
+  minty
+  misty
+  mixed
+  mobile
+  modest
+  morbid
+  musty
+  naive
+  needy
+  nifty
+  oily
+  older
+  orderly
+  ornate
+  pale
+  perky
+  phony
+  pickup
+  piercing
+  poised
+  polished
+  portly
+  pretty
+  pricey
+  prickly
+  primal
+  proper
+  punchy
+  pure
+  pushy
+  quaint
+  rainy
+  rare
+  ratty
+  raw
+  reeky
+  regal
+  remote
+  ripe
+  rigid
+  robust
+  roomy
+  rosy
+  rowdy
+  savory
+  scarce
+  scary
+  sincere
+  sleepless
+  slight
+  sluggish
+  smoggy
+  snazzy
+  snide
+  snippy
+  sober
+  somber
+  sparse
+  sporty
+  spotless
+  squeaky
+  starry
+  stout
+  straw
+  superb
+  swampy
+  sweaty
+  tabby
+  tacky
+  torn
+  trendy
+  turbid
+  twisty
+  ugly
+  vague
+  vivid
+  wacky
+  wan
+  watery
+  weary
+  weekly
+  weighty
+  whiny
+  wicker
+  woeful
+  wry
+  bright
+  cold
+  warm
+  fresh
+  green
+  bold
+  kind
+  shy
+  proud
+  smooth
+  sharp
+  dull
+  loud
+  soft
+  quick
+  slow
+  neat
+  plain
+  sweet
+  sour
+  salty
+  crisp
+  rough
+  flat
+  round
+  square
+  tall
+  short
+  wide
+  thin
+  small
+  big
+  huge
+  tiny
+  clean
+  dirty
+  wet
+  dry
+  light
+  dark
+  fair
+  brave
+  calm
+  fierce
+  cool
+  hot
+  strong
+  weak
+  new
+  old
+  young
+  rich
+  poor
+  funny
+  sad
+  glad
+  tired
+  busy
+  lazy
+  crazy
+  happy
+  moody
+  sleepy
+  tricky
+  silly
+  gruff
+  humble
+  gentle
+  harsh
+  noble
+  rude
+  polite
+  noisy
+  quiet
+  wise
+  meek
+  cute
+  witty
+  chunky
+  grassy
+  rocky
+  sandy
+  lucky
+  jolly
+  gloomy
+  hazy
+  fuzzy
+  steady
+  bumpy
+  stormy
+  frosty
+  sturdy
+  tidy
+  nutty
+  spicy
+  breezy
+  shiny
+  mellow
+  airy
+  rustic
+  sleek
+  zany
+  snug
+  bleak
+  blunt
+  bland
+  brisk
+  broad
+  chill
+  crude
+  dainty
+  deep
+  dense
+  hearty
+  hefty
+  icy
+  jagged
+  juicy
+  keen
+  lively
+  loose
+  lush
+  mild
+  milky
+  muddy
+  murky
+  narrow
+  nervous
+  nimble
+  odd
+  patchy
+  peachy
+  petty
+  plush
+  plucky
+  plump
+  prime
+  primo
+  puffy
+  quirky
+  rabid
+  ragged
+  rapid
+  rarer
+  ready
+  rugged
+  ruddy
+  runny
+  rusty
+  saucy
+  savage
+  scaly
+  scented
+  sensible
+  shabby
+  shadowed
+  shaky
+  sheer
+  shrill
+  shyish
+  silky
+  slim
+  slimy
+  sloppy
+  smug
+  snappy
+  soapy
+  softer
+  solemn
+  sparkly
+  speedy
+  spiky
+  spotty
+  spry
+  stale
+  stark
+  steep
+  sticky
+  stiff
+  stony
+  strange
+  strict
+  suave
+  sunny
+  tame
+  tasty
+  taut
+  tense
+  terse
+  thick
+  thorny
+  thrifty
+  toasty
+  tough
+  tourist
+  tranquil
+  trivial
+  true
+  tubby
+  twiggy
+  windy
+  wiry
+  woody
+  woolly
+  worthy
+  zesty
+  agile
+  basic
+  bitter
+  blurry
+  bogus
+  bony
+  bossy
+  brassy
+  brief
+  brittle
+  bubbly
+  bulky
+  bushy
+  bustling
+  candid
+  caring
+  charred
+  cheerful
+  chummy
+  classy
+  cloudy
+  clumsy
+  coarse
+  coastal
+  cosy
+  crispy
+  crowded
+  cruel
+</textarea>
+
+<!-- Paste your nouns below (one per line) -->
+<textarea id="stockNouns" style="display:none">
+  cat
+  dog
+  bird
+  horse
+  cow
+  sheep
+  goat
+  pig
+  mouse
+  rat
+  snake
+  fish
+  whale
+  shark
+  crab
+  ant
+  bee
+  wasp
+  fly
+  worm
+  bush
+  tree
+  grass
+  leaf
+  branch
+  stone
+  rock
+  cloud
+  rain
+  snow
+  storm
+  wind
+  sun
+  moon
+  star
+  lake
+  pond
+  stream
+  creek
+  river
+  field
+  farm
+  plain
+  shore
+  beach
+  cliff
+  hill
+  mount
+  trail
+  path
+  road
+  street
+  lane
+  bridge
+  house
+  cabin
+  shack
+  barn
+  shed
+  yard
+  porch
+  room
+  hall
+  stairs
+  floor
+  roof
+  wall
+  door
+  gate
+  fence
+  chair
+  table
+  couch
+  sofa
+  bench
+  bed
+  desk
+  shelf
+  box
+  crate
+  bag
+  pack
+  sack
+  cart
+  truck
+  car
+  train
+  boat
+  ship
+  plane
+  bike
+  raft
+  bus
+  wheel
+  engine
+  motor
+  gear
+  chain
+  rope
+  cord
+  wire
+  pipe
+  tool
+  knife
+  spoon
+  fork
+  cup
+  mug
+  plate
+  bowl
+  pan
+  pot
+  jar
+  lid
+  cloth
+  shirt
+  pants
+  dress
+  skirt
+  coat
+  vest
+  hat
+  cap
+  glove
+  sock
+  shoe
+  boot
+  belt
+  ring
+  watch
+  purse
+  case
+  wallet
+  key
+  lock
+  phone
+  screen
+  mouse
+  board
+  drive
+  chip
+  disk
+  code
+  file
+  note
+  book
+  page
+  pen
+  pencil
+  brush
+  paint
+  ink
+  stamp
+  glass
+  wood
+  steel
+  brick
+  clay
+  sand
+  dust
+  smoke
+  steam
+  flame
+  spark
+  ash
+  salt
+  sugar
+  spice
+  bread
+  cake
+  pie
+  soup
+  stew
+  meat
+  fruit
+  grape
+  peach
+  plum
+  pear
+  apple
+  berry
+  melon
+  lemon
+  onion
+  garlic
+  cheese
+  cream
+  milk
+  juice
+  water
+  coffee
+  tea
+  sauce
+  jam
+  honey
+  cookie
+  snack
+  grain
+  wheat
+  corn
+  rice
+  oat
+  bean
+  nut
+  seed
+  hand
+  arm
+  leg
+  foot
+  head
+  face
+  cheek
+  chin
+  nose
+  mouth
+  tooth
+  eye
+  ear
+  back
+  chest
+  heart
+  brain
+  blood
+  skin
+  bone
+  voice
+  laugh
+  smile
+  frown
+  tear
+  hug
+  kiss
+  child
+  kid
+  girl
+  boy
+  friend
+  guest
+  host
+  crowd
+  group
+  team
+  class
+  staff
+  boss
+  chief
+  guide
+  clerk
+  guard
+  judge
+  coach
+  nurse
+  pilot
+  cook
+  farmer
+  baker
+  singer
+  artist
+  writer
+  actor
+  player
+  owner
+  leader
+  buyer
+  seller
+  dealer
+  enemy
+  ally
+  fight
+  peace
+  war
+  truce
+  rule
+  law
+  court
+  crime
+  jail
+  fine
+  vote
+  trade
+  price
+  cost
+  fund
+  stock
+  bond
+  cash
+  coin
+  bank
+  check
+  bill
+  debt
+  loan
+  trust
+  gift
+  prize
+  award
+  medal
+  hero
+  myth
+  story
+  tale
+  joke
+  song
+  tune
+  sound
+  noise
+  scene
+  stage
+  show
+  play
+  game
+  match
+  round
+  race
+  sport
+  score
+  goal
+  win
+  loss
+  draw
+  point
+  chart
+  map
+  plan
+  list
+  graph
+  line
+  curve
+  shape
+  form
+  sign
+  mark
+  brand
+  trend
+  style
+  fashion
+  habit
+  skill
+  craft
+  trade
+  task
+  duty
+  job
+  role
+  shift
+  break
+  rest
+  dream
+  wish
+  hope
+  fear
+  doubt
+  truth
+  lie
+  fact
+  idea
+  view
+  claim
+  right
+  fault
+  cause
+  risk
+  chance
+  luck
+  fate
+  time
+  day
+  night
+  week
+  month
+  year
+  spring
+  summer
+  autumn
+  winter
+  start
+  end
+  edge
+  side
+  top
+  base
+  front
+  back
+  center
+  core
+  block
+  part
+  piece
+  bit
+  mass
+  load
+  heap
+  stack
+  pile
+  set
+  pair
+  bunch
+  dozen
+  score
+  unit
+  grade
+  level
+  limit
+  range
+  space
+  zone
+  area
+  place
+  site
+  spot
+  event
+  party
+  feast
+  fair
+  tour
+  trip
+  route
+  walk
+  ride
+  drive
+  stay
+  visit
+  view
+  scene
+  camp
+  tent
+  fire
+  ember
+  coal
+  log
+  stick
+  stone
+  shell
+  scale
+  wing
+  claw
+  hoof
+  fur
+  hide
+  tail
+  fin
+  beak
+  root
+  bud
+  bloom
+  flower
+  bark
+  vine
+  seedling
+  breeze
+  gust
+  gale
+  tide
+  wave
+  foam
+  spray
+  mist
+  fog
+  hail
+  sleet
+  ice
+  frost
+  echo
+  scent
+  odor
+  smell
+  taste
+  touch
+  sight
+  sound
+  heat
+  chill
+  glow
+  gleam
+  flash
+  glint
+  shade
+  shadow
+  ray
+  beam
+  ring
+  chime
+  bell
+  drum
+  flute
+  horn
+  lyric
+  verse
+  chorus
+  chant
+  rhythm
+  beat
+  pulse
+  tempo
+  scale
+  note
+  score
+  band
+  choir
+  actor
+  cast
+  scene
+  prop
+  mask
+  crowd
+  booth
+  stall
+  stand
+  tent
+  flag
+  banner
+  sign
+  poster
+  ad
+  label
+  tag
+  brand
+  logo
+  badge
+  crest
+  crown
+  throne
+  sword
+  shield
+  spear
+  axe
+  bow
+  arrow
+  armor
+  cloak
+  robe
+  helm
+  medic
+  healer
+  guard
+  scout
+  spy
+  thief
+  knight
+  priest
+  monk
+  chief
+  lord
+  lady
+  king
+  queen
+  prince
+  princess
+  duke
+  earl
+  knave
+  peasant
+  merchant
+  smith
+  mason
+  miner
+  hunter
+  fisher
+  butcher
+  cook
+  tailor
+  weaver
+  potter
+  scribe
+  clerk
+  monk
+  abbot
+  nun
+  mayor
+  judge
+  sheriff
+  ranger
+  dealer
+  trader
+  vendor
+  buyer
+  client
+  guest
+  host
+  tenant
+  owner
+  agent
+  broker
+  driver
+  rider
+  flier
+  hiker
+  guest
+  tourist
+  visitor
+  neighbor
+  partner
+  member
+  leader
+  follower
+  ruler
+  voter
+  worker
+  boss
+  chief
+  parent
+  mother
+  father
+  uncle
+  aunt
+  cousin
+  sister
+  brother
+  son
+  daughter
+  baby
+  toddler
+  teen
+  adult
+  elder
+  crow
+  hawk
+  eagle
+  owl
+  dove
+  swan
+  goose
+  duck
+  fox
+  wolf
+  bear
+  lion
+  tiger
+  rhino
+  hippo
+  zebra
+  camel
+  yak
+  deer
+  moose
+  elk
+  otter
+  seal
+  dolphin
+  coral
+  reef
+  isle
+  island
+  harbor
+  port
+  dock
+  pier
+  harbor
+  cove
+  bay
+  delta
+  marsh
+  swamp
+  bog
+  meadow
+  grove
+  orchard
+  garden
+  park
+  plaza
+  square
+  market
+  shop
+  store
+  mall
+  kiosk
+  booth
+  office
+  cafe
+  diner
+  pub
+  bar
+  inn
+  hotel
+  motel
+  lobby
+  suite
+  cabin
+  loft
+  attic
+  cellar
+  basement
+  garage
+  shed
+  closet
+  drawer
+  cabinet
+  locker
+  safe
+  vault
+  counter
+  stool
+  cushion
+  blanket
+  sheet
+  pillow
+  quilt
+  rug
+  mat
+  curtain
+  blind
+  screen
+  mirror
+  frame
+  photo
+  image
+  picture
+  print
+  poster
+  statue
+  bust
+  idol
+  token
+  charm
+  relic
+  artifact
+  relic
+  idol
+  idol
+  gem
+  stone
+  pearl
+  ruby
+  opal
+  amber
+  silver
+  gold
+  iron
+  copper
+  bronze
+  metal
+  alloy
+  fiber
+  thread
+  string
+  twine
+  yarn
+  cloth
+  linen
+  cotton
+  silk
+  wool
+  leather
+  plastic
+  rubber
+  paper
+  card
+  foil
+  film
+  powder
+  grain
+  chip
+  flake
+  chunk
+  block
+  slab
+  rod
+  bar
+  tube
+  ring
+  loop
+  hook
+  clasp
+  hinge
+  bolt
+  nail
+  screw
+  pin
+  tack
+  peg
+  clip
+  clamp
+  strap
+  band
+  brace
+  mask
+  pad
+  guard
+  shield
+  filter
+  case
+  shell
+  core
+  frame
+  chassis
+  panel
+  screen
+  button
+  switch
+  lever
+  valve
+  knob
+  handle
+  grip
+  lid
+  cover
+  cap
+  plug
+  port
+  jack
+  slot
+  joint
+  link
+  joint
+  bridge
+  span
+  arch
+  tower
+  spire
+  dome
+  hall
+  wing
+  lobby
+  porch
+  deck
+  balcony
+  patio
+  garden
+  yard
+  alley
+  court
+  lot
+  plot
+  farm
+  ranch
+  estate
+  villa
+  cottage
+  hut
+  shanty
+  camp
+  fort
+  castle
+  prison
+  cell
+  dungeon
+  barrack
+  hut
+  shed
+  stable
+  coop
+  pen
+  kennel
+  stall
+  corral
+  arena
+  ring
+  field
+  court
+  track
+  rink
+  pitch
+  gym
+  studio
+  stage
+  set
+  hall
+  theater
+  cinema
+  screen
+  booth
+  stand
+  gate
+  turnstile
+  border
+  frontier
+  limit
+  edge
+  margin
+  frame
+  outline
+  shape
+  form
+  model
+  copy
+  draft
+  sketch
+  plan
+  scheme
+  map
+  chart
+  table
+  list
+  queue
+  line
+  row
+  chain
+  circle
+  ring
+  loop
+  spiral
+  knot
+  tangle
+  bundle
+  pack
+  packet
+  parcel
+  crate
+  box
+  case
+  chest
+  trunk
+  suitcase
+  bag
+  sack
+  pouch
+  envelope
+  folder
+  file
+  binder
+  notebook
+  journal
+  diary
+  ledger
+  record
+  log
+  index
+  card
+  ticket
+  pass
+  token
+  coin
+  badge
+  permit
+  license
+  form
+  sheet
+  bill
+  check
+  invoice
+  receipt
+  memo
+  note
+  letter
+  mail
+  parcel
+  package
+  gift
+  present
+  prize
+  award
+  medal
+  trophy
+  banner
+  flag
+  signal
+  sign
+  alarm
+  alert
+  hint
+  clue
+  proof
+  trace
+  sample
+  test
+  trial
+  quiz
+  exam
+  grade
+  score
+  rank
+  rate
+  value
+  price
+  cost
+  fee
+  wage
+  rent
+  salary
+  bonus
+  tip
+  tax
+  fund
+  grant
+  budget
+  sum
+  total
+  share
+  stock
+  bond
+  asset
+  debt
+  loan
+  credit
+  limit
+  risk
+  gain
+  loss
+  profit
+  yield
+  return
+  option
+  right
+  duty
+  rule
+  law
+  code
+  order
+  edict
+  ban
+  fine
+  penalty
+  charge
+  case
+  trial
+  appeal
+  claim
+  suit
+  deal
+  pact
+  treaty
+  truce
+  union
+  alliance
+  circle
+  club
+  group
+  team
+  band
+  crew
+  staff
+  board
+  panel
+  council
+  jury
+  crowd
+  mob
+  gang
+  herd
+  flock
+  pack
+  swarm
+  school
+  fleet
+</textarea>
+
+<button class="theme-toggle" id="themeToggle">dark</button>
+
+<div class="container">
+  <header>
+    <h1>Username Generator</h1>
+    <p class="subtitle">combine adjectives + nouns to generate usernames; use stock lists or upload your own text files, one word per line. runs locally in browser.</p>
+  </header>
+
+  <div class="upload-grid">
+    <div class="upload-box" id="adjBox">
+      <input type="file" id="adjFile" accept=".txt">
+      <span class="upload-label">Adjectives file</span>
+      <div class="upload-status" id="adjStatus">Click to upload .txt</div>
+      <div class="upload-count" id="adjCount"></div>
+    </div>
+    <div class="upload-box" id="nounBox">
+      <input type="file" id="nounFile" accept=".txt">
+      <span class="upload-label">Nouns file</span>
+      <div class="upload-status" id="nounStatus">Click to upload .txt</div>
+      <div class="upload-count" id="nounCount"></div>
+    </div>
+  </div>
+
+  <div class="options-row">
+    <label class="checkbox-wrap">
+      <input type="checkbox" id="addNumber">
+      <span>Append a number</span>
+    </label>
+    <div class="num-range" id="rangeControls" style="display:none">
+      <span>1–</span>
+      <input type="number" id="numMax" value="999" min="1" max="99999">
+    </div>
+  </div>
+
+  <button class="btn-generate" id="generateBtn" disabled>Generate 10 Usernames</button>
+
+  <div class="result-box" id="resultBox">
+    <span class="placeholder-text" id="placeholderText">LOADING...</span>
+  </div>
+  <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<script>
+  let adjectives = [];
+  let nouns = [];
+
+  function parseWords(text) {
+    return text.split(/\r?\n/).map(w => w.trim()).filter(w => w.length > 0);
+  }
+
+  function updateBtn() {
+    document.getElementById('generateBtn').disabled = !(adjectives.length && nouns.length);
+  }
+
+  function readFile(file, onLoad) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const words = e.target.result
+        .split(/\r?\n/)
+        .map(w => w.trim())
+        .filter(w => w.length > 0);
+      onLoad(words);
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById('adjFile').addEventListener('change', function() {
+    if (!this.files[0]) return;
+    readFile(this.files[0], words => {
+      adjectives = words;
+      document.getElementById('adjStatus').textContent = this.files[0].name;
+      document.getElementById('adjCount').textContent = `${words.length} words loaded`;
+      document.getElementById('adjBox').classList.add('loaded');
+      updateBtn();
+    });
+  });
+
+  document.getElementById('nounFile').addEventListener('change', function() {
+    if (!this.files[0]) return;
+    readFile(this.files[0], words => {
+      nouns = words;
+      document.getElementById('nounStatus').textContent = this.files[0].name;
+      document.getElementById('nounCount').textContent = `${words.length} words loaded`;
+      document.getElementById('nounBox').classList.add('loaded');
+      updateBtn();
+    });
+  });
+
+  const addNumberCheckbox = document.getElementById('addNumber');
+  addNumberCheckbox.addEventListener('change', function() {
+    document.getElementById('rangeControls').style.display = this.checked ? 'flex' : 'none';
+  });
+
+  function pick(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', () => {
+    const addNum = addNumberCheckbox.checked;
+    const max = parseInt(document.getElementById('numMax').value) || 999;
+
+    const usernames = Array.from({ length: 10 }, () => {
+      const adj = capitalize(pick(adjectives));
+      const noun = capitalize(pick(nouns));
+      let username = adj + noun;
+      if (addNum) username += Math.floor(Math.random() * max) + 1;
+      return username;
+    });
+
+    const resultBox = document.getElementById('resultBox');
+    resultBox.classList.add('has-result');
+    resultBox.innerHTML = `
+      <ul class="username-list">
+        ${usernames.map((u, i) => `
+          <li class="username-item" id="item-${i}">
+            <span class="num-label">${String(i + 1).padStart(2, '0')}</span>
+            <span class="username-text">${u}</span>
+            <button class="copy-btn" data-username="${u}">copy</button>
+          </li>
+        `).join('')}
+      </ul>
+    `;
+
+    // Staggered animation
+    usernames.forEach((_, i) => {
+      setTimeout(() => {
+        const el = document.getElementById(`item-${i}`);
+        if (el) el.classList.add('show');
+      }, i * 40);
+    });
+
+    // Copy buttons
+    resultBox.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.username).then(() => {
+          btn.textContent = 'copied!';
+          btn.style.color = 'var(--text)';
+          btn.style.borderColor = 'var(--border-strong)';
+          setTimeout(() => {
+            btn.textContent = 'copy';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+          }, 1500);
+        });
+      });
+    });
+  });
+
+  // Load stock lists — runs after full DOM is parsed (script is at end of body)
+  function loadStockLists() {
+    const stockAdj = parseWords(document.getElementById('stockAdjectives').value);
+    const stockNoun = parseWords(document.getElementById('stockNouns').value);
+    if (stockAdj.length) {
+      adjectives = stockAdj;
+      document.getElementById('adjStatus').textContent = 'Using stock list';
+      document.getElementById('adjCount').textContent = `${stockAdj.length} words`;
+    }
+    if (stockNoun.length) {
+      nouns = stockNoun;
+      document.getElementById('nounStatus').textContent = 'Using stock list';
+      document.getElementById('nounCount').textContent = `${stockNoun.length} words`;
+    }
+    updateBtn();
+    const placeholder = document.getElementById('placeholderText');
+    placeholder.textContent = (adjectives.length && nouns.length)
+      ? 'READY — CLICK GENERATE'
+      : 'UPLOAD FILES TO BEGIN';
+  }
+
+  // Dark mode toggle
+  const themeToggle = document.getElementById('themeToggle');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (prefersDark) {
+    document.documentElement.classList.add('dark');
+    themeToggle.textContent = 'light';
+  }
+  themeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    themeToggle.textContent = isDark ? 'light' : 'dark';
+  });
+
+  loadStockLists();
+</script>
+
+</body>
+</html>
