@@ -1,0 +1,1 @@
+Simple username generator. Runs in browser, no server needed. Stock word lists (adjectives.txt and nouns.txt) are included in the HTML in hidden textareas but the script can accept other word lists as well.
